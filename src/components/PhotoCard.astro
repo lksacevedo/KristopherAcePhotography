@@ -1,0 +1,40 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  href?: string;
+  caption?: string;
+  aspect?: 'square' | 'landscape' | 'portrait' | 'wide';
+}
+
+const { src, alt, href, caption, aspect = 'landscape' } = Astro.props;
+
+const aspectClass = {
+  square: 'aspect-square',
+  landscape: 'aspect-[3/2]',
+  portrait: 'aspect-[2/3]',
+  wide: 'aspect-[16/9]',
+}[aspect];
+
+const Wrapper = href ? 'a' : 'div';
+---
+
+<Wrapper
+  href={href}
+  class="group block overflow-hidden rounded-sm bg-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-800)] transition-all hover:ring-[color:var(--color-ink-500)]"
+>
+  <div class={`${aspectClass} overflow-hidden`}>
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+    />
+  </div>
+  {caption && (
+    <div class="px-3 py-2 text-xs text-[color:var(--color-ink-300)]">
+      {caption}
+    </div>
+  )}
+</Wrapper>

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PhotoCard from '../components/PhotoCard.astro';
+import { getCollection } from 'astro:content';
+
+const items = (await getCollection('gallery'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Gallery — Recent Work — KristopherAce Photography" description="Fresh frames from the last few months.">
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pt-16 sm:pt-24 pb-8">
+    <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">Last few months</p>
+    <h1 class="mt-3 font-serif text-4xl sm:text-6xl">Gallery</h1>
+    <p class="mt-4 max-w-2xl text-[color:var(--color-ink-300)]">
+      Recent work — what's current, what's being refined into the portfolio.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pb-24">
+    <div class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map(item => {
+        const d = item.data.date;
+        const caption = `${item.data.title} — ${d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+        return <PhotoCard src={item.data.image} alt={item.data.title} caption={caption} />;
+      })}
+    </div>
+  </section>
+</BaseLayout>

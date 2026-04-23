@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0a14"/>
+      <stop offset="0.55" stop-color="#1a1530"/>
+      <stop offset="1" stop-color="#2a1a1a"/>
+    </linearGradient>
+    <radialGradient id="mw" cx="50%" cy="35%" r="60%">
+      <stop offset="0" stop-color="#e6c98a" stop-opacity="0.35"/>
+      <stop offset="0.4" stop-color="#7a5a9a" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#0a0a14" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#g)"/>
+  <rect width="1600" height="1000" fill="url(#mw)"/>
+  <g fill="#e8e8ee">
+    <circle cx="200" cy="150" r="1.5"/>
+    <circle cx="420" cy="90" r="1"/>
+    <circle cx="680" cy="200" r="2"/>
+    <circle cx="900" cy="120" r="1"/>
+    <circle cx="1100" cy="180" r="1.5"/>
+    <circle cx="1300" cy="260" r="1"/>
+    <circle cx="1480" cy="100" r="1.5"/>
+    <circle cx="340" cy="320" r="1"/>
+    <circle cx="780" cy="380" r="1.5"/>
+    <circle cx="1040" cy="300" r="1"/>
+    <circle cx="1240" cy="420" r="1"/>
+  </g>
+  <path d="M0,720 L180,680 L360,700 L540,640 L720,680 L900,620 L1080,660 L1260,620 L1440,660 L1600,640 L1600,1000 L0,1000 Z" fill="#0a0a0b"/>
+  <text x="800" y="950" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#6b6b76">placeholder — replace with real image</text>
+</svg>

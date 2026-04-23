@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', p => !p.data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Journal — KristopherAce Photography" description="Field notes, locations, gear, and what I'm learning.">
+  <section class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 pt-16 sm:pt-24 pb-8">
+    <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">Journal</p>
+    <h1 class="mt-3 font-serif text-4xl sm:text-6xl">Notes from the field.</h1>
+    <p class="mt-4 max-w-2xl text-[color:var(--color-ink-300)]">
+      Writing about the places, the process, and the occasional failure.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 pb-24">
+    <ul class="divide-y divide-[color:var(--color-ink-800)]">
+      {posts.map(post => {
+        const slug = post.id.replace(/\.(md|mdx)$/, '');
+        return (
+          <li class="py-8">
+            <a href={`/blog/${slug}`} class="group block">
+              <div class="flex items-baseline gap-4 text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-500)]">
+                <time datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </time>
+                {post.data.tags.length > 0 && (
+                  <>
+                    <span class="text-[color:var(--color-ink-700)]">·</span>
+                    <span>{post.data.tags.join(' · ')}</span>
+                  </>
+                )}
+              </div>
+              <h2 class="mt-2 font-serif text-2xl sm:text-3xl group-hover:text-[color:var(--color-accent)] transition-colors">
+                {post.data.title}
+              </h2>
+              {post.data.excerpt && (
+                <p class="mt-2 text-[color:var(--color-ink-300)]">{post.data.excerpt}</p>
+              )}
+              <p class="mt-3 text-xs text-[color:var(--color-ink-500)] group-hover:text-[color:var(--color-accent)]">Read →</p>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+
+    {posts.length === 0 && (
+      <p class="text-[color:var(--color-ink-500)]">No posts yet. Drop a Markdown file in <code>src/content/blog/</code>.</p>
+    )}
+  </section>
+</BaseLayout>

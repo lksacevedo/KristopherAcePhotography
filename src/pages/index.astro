@@ -1,0 +1,102 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PhotoCard from '../components/PhotoCard.astro';
+import { getCollection } from 'astro:content';
+
+const portfolio = (await getCollection('portfolio'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 6);
+
+const gallery = (await getCollection('gallery'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+---
+
+<BaseLayout
+  title="KristopherAce Photography — Landscape, Astrophotography, Travel"
+  description="The night sky, the open road, and the quiet in between."
+>
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10">
+      <img
+        src="/images/placeholders/joshua-tree-cover.svg"
+        alt=""
+        class="h-full w-full object-cover opacity-70"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-[color:var(--color-ink-950)]/40 via-[color:var(--color-ink-950)]/70 to-[color:var(--color-ink-950)]"></div>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-28 sm:py-40">
+      <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">
+        Landscape · Astrophotography · Travel
+      </p>
+      <h1 class="mt-4 font-serif text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl">
+        The night sky, the open road, and the quiet in between.
+      </h1>
+      <p class="mt-6 max-w-xl text-[color:var(--color-ink-300)] text-base sm:text-lg">
+        Photographs by Kristopher Acevedo. New work every week. Prints and bookings on the way.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/portfolio" class="inline-flex items-center rounded-sm border border-[color:var(--color-ink-100)] px-5 py-2.5 text-sm hover:bg-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-950)] transition">
+          View portfolio
+        </a>
+        <a href="/albums" class="inline-flex items-center rounded-sm border border-[color:var(--color-ink-700)] px-5 py-2.5 text-sm text-[color:var(--color-ink-300)] hover:border-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-50)] transition">
+          Explore by location →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Portfolio teaser -->
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-20 sm:py-28">
+    <div class="flex items-end justify-between gap-4 mb-10">
+      <div>
+        <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-ink-500)]">Selected work</p>
+        <h2 class="mt-2 font-serif text-3xl sm:text-4xl">Portfolio</h2>
+      </div>
+      <a href="/portfolio" class="text-sm text-[color:var(--color-ink-300)] hover:text-[color:var(--color-accent)]">All work →</a>
+    </div>
+    <div class="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-3">
+      {portfolio.map(p => (
+        <PhotoCard src={p.data.image} alt={p.data.title} href="/portfolio" caption={p.data.title} />
+      ))}
+    </div>
+  </section>
+
+  <!-- Recent gallery teaser -->
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-20 sm:py-28 border-t border-[color:var(--color-ink-800)]">
+    <div class="flex items-end justify-between gap-4 mb-10">
+      <div>
+        <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-ink-500)]">Latest</p>
+        <h2 class="mt-2 font-serif text-3xl sm:text-4xl">Recent gallery</h2>
+      </div>
+      <a href="/gallery" class="text-sm text-[color:var(--color-ink-300)] hover:text-[color:var(--color-accent)]">View gallery →</a>
+    </div>
+    <div class="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3">
+      {gallery.map(g => (
+        <PhotoCard src={g.data.image} alt={g.data.title} href="/gallery" caption={g.data.title} />
+      ))}
+    </div>
+  </section>
+
+  <!-- Albums CTA -->
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 py-20 sm:py-28 border-t border-[color:var(--color-ink-800)]">
+    <div class="grid gap-10 lg:grid-cols-2 items-center">
+      <div>
+        <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-ink-500)]">Albums</p>
+        <h2 class="mt-2 font-serif text-3xl sm:text-4xl">Explore the work by location.</h2>
+        <p class="mt-4 max-w-lg text-[color:var(--color-ink-300)]">
+          Every album is pinned to the place it was shot. Open the map and drop into Joshua Tree,
+          Iceland, the Eastern Sierra — wherever the frame was made.
+        </p>
+        <a href="/albums" class="mt-6 inline-flex items-center rounded-sm border border-[color:var(--color-ink-100)] px-5 py-2.5 text-sm hover:bg-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-950)] transition">
+          Open the map
+        </a>
+      </div>
+      <div class="aspect-[4/3] overflow-hidden rounded-sm bg-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-800)]">
+        <img src="/images/placeholders/iceland-cover.svg" alt="Iceland album cover" class="h-full w-full object-cover"/>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

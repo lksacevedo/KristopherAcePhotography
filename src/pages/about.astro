@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About — KristopherAce Photography" description="About Kristopher Acevedo — landscape and astrophotography.">
+  <section class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 pt-16 sm:pt-24 pb-24">
+    <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">About</p>
+    <h1 class="mt-3 font-serif text-4xl sm:text-6xl">Kristopher Acevedo</h1>
+
+    <div class="mt-8 grid gap-10 md:grid-cols-[2fr,1fr]">
+      <div class="prose prose-invert max-w-none text-[color:var(--color-ink-300)] text-lg leading-relaxed">
+        <p>
+          I photograph the places most people are asleep for — dark-sky deserts, pre-dawn
+          coastlines, mountain passes at blue hour. Based in [your city]. Shooting seriously
+          since [year].
+        </p>
+        <p>
+          This site is a working archive. Portfolio for the best of it, Gallery for what's
+          recent, Albums for how the work connects to place. A journal when there's something
+          worth writing down.
+        </p>
+        <p>
+          Prints and client bookings are coming. Until then, feel free to get in touch.
+        </p>
+
+        <p class="mt-10">
+          <a href="/contact" class="inline-flex items-center rounded-sm border border-[color:var(--color-ink-100)] px-5 py-2.5 text-sm no-underline hover:bg-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-950)] transition">
+            Get in touch →
+          </a>
+        </p>
+      </div>
+
+      <aside class="text-sm text-[color:var(--color-ink-500)] space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-500)]">Based</p>
+          <p class="mt-1 text-[color:var(--color-ink-300)]">[City, State]</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-500)]">Shoots</p>
+          <p class="mt-1 text-[color:var(--color-ink-300)]">Landscape · Astro · Travel · Cityscape</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-500)]">Kit</p>
+          <p class="mt-1 text-[color:var(--color-ink-300)]">[Your camera, lenses, whatever you want to list]</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
