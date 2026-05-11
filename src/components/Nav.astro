@@ -11,75 +11,73 @@ const links = [
 const isActive = (href: string) =>
   href === '/' ? pathname === '/' : pathname.startsWith(href);
 
-// Hide the fixed nav on the home page — the hero handles it there
 const isHome = pathname === '/';
 ---
 
 {!isHome && (
-  <>
-    <!-- TOP BAR: logo left, hamburger right -->
-    <header id="site-header" class="site-header">
-      <a href="/" class="header-logo" aria-label="KristopherAce Home">
-        <img src="/ka-logo.svg" alt="KA Logo" width="44" height="44" />
-      </a>
+  <header class="site-header">
+    <!-- Logo top left -->
+    <a href="/" class="header-logo" aria-label="KristopherAce Home">
+      <img src="/logo-ka-white.svg" alt="KA Logo" width="44" height="44" />
+    </a>
 
-      <button
-        id="nav-toggle"
-        class="hamburger"
-        aria-label="Open menu"
-        aria-expanded="false"
-        aria-controls="side-nav"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </header>
+    <!-- Desktop: nav links permanently down the right side -->
+    <nav class="side-nav" aria-label="Main navigation">
+      {links.map(({ href, label }) => (
+        <a href={href} class={isActive(href) ? 'active' : ''}>
+          {label}
+        </a>
+      ))}
+    </nav>
 
-    <!-- SIDE NAV: slides in from right -->
-    <nav id="side-nav" class="side-nav" aria-hidden="true">
+    <!-- Mobile only: hamburger button -->
+    <button
+      id="nav-toggle"
+      class="hamburger"
+      aria-label="Open menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Mobile only: slide-in panel -->
+    <nav id="mobile-menu" class="mobile-menu" aria-hidden="true">
       <button id="nav-close" class="nav-close" aria-label="Close menu">&#x2715;</button>
       <ul>
         {links.map(({ href, label }) => (
           <li>
-            <a
-              href={href}
-              class={isActive(href) ? 'active' : ''}
-            >
+            <a href={href} class={isActive(href) ? 'active' : ''}>
               {label}
             </a>
           </li>
         ))}
       </ul>
     </nav>
-
-    <!-- Backdrop -->
     <div id="nav-backdrop" class="nav-backdrop" aria-hidden="true"></div>
-  </>
+  </header>
 )}
 
 <style>
-  /* ── TOP BAR ── */
   .site-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    bottom: 0;
     z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 24px;
-    /* subtle gradient so it doesn't fight page content */
-    background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
-    pointer-events: none; /* let clicks through the gradient area */
+    pointer-events: none;
   }
 
-  .header-logo,
-  .hamburger {
+  /* ── LOGO: top left ── */
+  .header-logo {
+    position: absolute;
+    top: 20px;
+    left: 24px;
     pointer-events: all;
   }
-
   .header-logo img {
     width: 44px;
     height: 44px;
@@ -88,11 +86,40 @@ const isHome = pathname === '/';
     filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));
     transition: opacity 0.2s;
   }
-  .header-logo:hover img { opacity: 0.8; }
+  .header-logo:hover img { opacity: 0.7; }
 
-  /* ── HAMBURGER ── */
-  .hamburger {
+  /* ── DESKTOP SIDE NAV ── */
+  .side-nav {
+    position: absolute;
+    top: 50%;
+    right: 32px;
+    transform: translateY(-50%);
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 18px;
+    pointer-events: all;
+  }
+  .side-nav a {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  .side-nav a:hover { color: rgba(255, 255, 255, 0.9); }
+  .side-nav a.active { color: #fff; }
+
+  /* ── HAMBURGER: mobile only ── */
+  .hamburger {
+    display: none;
+    position: absolute;
+    top: 18px;
+    right: 20px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -103,6 +130,7 @@ const isHome = pathname === '/';
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     cursor: pointer;
+    pointer-events: all;
     transition: background 0.2s;
   }
   .hamburger:hover { background: rgba(0, 0, 0, 0.65); }
@@ -112,11 +140,10 @@ const isHome = pathname === '/';
     height: 1.5px;
     background: #ddd;
     border-radius: 2px;
-    transition: transform 0.3s, opacity 0.3s;
   }
 
-  /* ── SIDE NAV ── */
-  .side-nav {
+  /* ── MOBILE SLIDE-IN PANEL ── */
+  .mobile-menu {
     position: fixed;
     top: 0;
     right: 0;
@@ -133,10 +160,9 @@ const isHome = pathname === '/';
     flex-direction: column;
     justify-content: center;
     padding: 48px 36px;
+    pointer-events: all;
   }
-  .side-nav.open {
-    transform: translateX(0);
-  }
+  .mobile-menu.open { transform: translateX(0); }
 
   .nav-close {
     position: absolute;
@@ -153,7 +179,7 @@ const isHome = pathname === '/';
   }
   .nav-close:hover { color: #fff; }
 
-  .side-nav ul {
+  .mobile-menu ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -161,8 +187,7 @@ const isHome = pathname === '/';
     flex-direction: column;
     gap: 4px;
   }
-
-  .side-nav a {
+  .mobile-menu a {
     display: block;
     font-family: 'Inter', sans-serif;
     font-size: 11px;
@@ -171,17 +196,12 @@ const isHome = pathname === '/';
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.45);
     text-decoration: none;
-    padding: 10px 0;
-    border-bottom: 1px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: color 0.2s;
   }
-  .side-nav a:hover {
-    color: rgba(255, 255, 255, 0.9);
-  }
-  .side-nav a.active {
-    color: #fff;
-    border-bottom-color: rgba(255,255,255,0.2);
-  }
+  .mobile-menu a:hover { color: rgba(255, 255, 255, 0.9); }
+  .mobile-menu a.active { color: #fff; }
 
   /* ── BACKDROP ── */
   .nav-backdrop {
@@ -197,31 +217,36 @@ const isHome = pathname === '/';
     opacity: 1;
     pointer-events: all;
   }
+
+  /* ── RESPONSIVE BREAKPOINT ── */
+  @media (max-width: 768px) {
+    .side-nav   { display: none; }
+    .hamburger  { display: flex; }
+  }
 </style>
 
 <script>
   const toggle   = document.getElementById('nav-toggle');
   const closeBtn = document.getElementById('nav-close');
-  const nav      = document.getElementById('side-nav');
+  const menu     = document.getElementById('mobile-menu');
   const backdrop = document.getElementById('nav-backdrop');
 
   function openNav() {
-    nav?.classList.add('open');
+    menu?.classList.add('open');
     backdrop?.classList.add('open');
     toggle?.setAttribute('aria-expanded', 'true');
-    nav?.setAttribute('aria-hidden', 'false');
+    menu?.setAttribute('aria-hidden', 'false');
   }
   function closeNav() {
-    nav?.classList.remove('open');
+    menu?.classList.remove('open');
     backdrop?.classList.remove('open');
     toggle?.setAttribute('aria-expanded', 'false');
-    nav?.setAttribute('aria-hidden', 'true');
+    menu?.setAttribute('aria-hidden', 'true');
   }
 
   toggle?.addEventListener('click', openNav);
   closeBtn?.addEventListener('click', closeNav);
   backdrop?.addEventListener('click', closeNav);
-
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeNav();
   });
