@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import exifr from 'exifr';
+import path from 'node:path';
+
+export async function getStaticPaths() {
+  const items = await getCollection('gallery');
+  return items.map(item => ({
+    params: { slug: item.id.replace(/\.(md|mdx)$/, '') },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const { title, image, location, date, comment } = item.data;
+
+function formatShutter(exp: number): string {
+  if (exp >= 1) return `${exp}s`;
+  return `1/${Math.round(1 / exp)}s`;
+}
+
+const filePath = path.join(process.cwd(), 'public', image);
+let exif: Record<string, any> = {};
+try {
+  exif = await exifr.parse(filePath, {
+    pick: ['Model', 'LensModel', 'FNumber', 'ExposureTime', 'FocalLength', 'ISO', 'DateTimeOriginal']
+  }) ?? {};
+} catch {}
+
+const shotOn = exif.DateTimeOriginal ? new Date(exif.DateTimeOriginal) : date;
+const specs = [
+  exif.FocalLength ? `${exif.FocalLength}mm` : null,
+  exif.FNumber ? `f/${exif.FNumber}` : null,
+  exif.ExposureTime ? formatShutter(exif.ExposureTime) : null,
+  exif.ISO ? `ISO ${exif.ISO}` : null,
+].filter(Boolean);
+---
+
+<BaseLayout title={`${title} — KristopherAce Photography`} description={comment ?? `${title}${location ? `, ${location}` : ''}`} image={image}>
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 pt-16 sm:pt-24 pb-24">
+
+    <a href="/gallery" class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-400)] hover:text-[color:var(--color-ink-100)] transition-colors">
+      ← Gallery
+    </a>
+
+    <figure class="mt-8">
+      <img
+        src={image}
+        alt={title}
+        class="w-full h-auto rounded-sm"
+      />
+
+      <figcaption class="mt-6 space-y-4">
+        <h1 class="font-serif text-3xl sm:text-4xl">{title}</h1>
+
+        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
+          {location && <span>{location}</span>}
+          <span>{shotOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+        </div>
+
+        {comment && (
+          <p class="text-[color:var(--color-ink-300)] leading-relaxed max-w-2xl">{comment}</p>
+        )}
+
+        {(exif.Model || exif.LensModel || specs.length > 0) && (
+          <div class="pt-4 border-t border-[color:var(--color-ink-700)] space-y-2">
+            <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
+              {exif.Model && (
+                <span class="flex gap-2">
+                  <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Camera</span>
+                  {exif.Model}
+                </span>
+              )}
+              {exif.LensModel && (
+                <span class="flex gap-2">
+                  <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Lens</span>
+                  {exif.LensModel}
+                </span>
+              )}
+            </div>
+            {specs.length > 0 && (
+              <p class="text-sm text-[color:var(--color-ink-400)] tracking-wide">{specs.join(' · ')}</p>
+            )}
+          </div>
+        )}
+      </figcaption>
+    </figure>
+
+  </div>
+</BaseLayout>

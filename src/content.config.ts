@@ -29,8 +29,9 @@ const gallery = defineCollection({
   schema: z.object({
     title: z.string(),
     image: z.string(),
-    caption: z.string().optional(),
+    location: z.string().optional(),
     date: z.coerce.date(),
+    comment: z.string().optional(),
   }),
 });
 

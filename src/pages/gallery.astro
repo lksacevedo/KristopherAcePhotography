@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PhotoCard from '../components/PhotoCard.astro';
 import { getCollection } from 'astro:content';
 
 const threeMonthsAgo = new Date();
@@ -21,12 +20,38 @@ const items = (await getCollection('gallery'))
   </section>
 
   <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pb-24">
-    <div class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="masonry">
       {items.map(item => {
-        const d = item.data.date;
-        const caption = `${item.data.title} — ${d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
-        return <PhotoCard src={item.data.image} alt={item.data.title} caption={caption} />;
+        const slug = item.id.replace(/\.(md|mdx)$/, '');
+        return (
+          <a href={`/gallery/${slug}`} class="masonry-item group">
+            <img
+              src={item.data.image}
+              alt={item.data.title}
+              loading="lazy"
+              decoding="async"
+              class="w-full h-auto block transition-opacity duration-300 group-hover:opacity-80"
+            />
+          </a>
+        );
       })}
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  .masonry {
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 640px) {
+    .masonry { columns: 3; }
+  }
+  .masonry-item {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+</style>

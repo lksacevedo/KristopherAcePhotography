@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PhotoCard from '../components/PhotoCard.astro';
 import { getCollection } from 'astro:content';
 
 const items = (await getCollection('portfolio'))
@@ -19,7 +18,7 @@ const categories = Array.from(new Set(items.map(i => i.data.category)));
 
     {categories.length > 1 && (
       <div class="mt-8 flex flex-wrap gap-2 text-xs">
-        <button data-filter="all" class="filter-btn rounded-full border border-[color:var(--color-ink-100)] px-3 py-1.5 text-[color:var(--color-ink-50)]">All</button>
+        <button data-filter="all" class="filter-btn active rounded-full border border-[color:var(--color-ink-100)] px-3 py-1.5 text-[color:var(--color-ink-50)]">All</button>
         {categories.map(c => (
           <button data-filter={c} class="filter-btn rounded-full border border-[color:var(--color-ink-700)] px-3 py-1.5 text-[color:var(--color-ink-300)] hover:border-[color:var(--color-ink-100)] hover:text-[color:var(--color-ink-50)]">
             {c.charAt(0).toUpperCase() + c.slice(1)}
@@ -30,22 +29,32 @@ const categories = Array.from(new Set(items.map(i => i.data.category)));
   </section>
 
   <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pb-24">
-    <div id="portfolio-grid" class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map(item => (
-        <div class="portfolio-item" data-category={item.data.category}>
-          <PhotoCard
-            src={item.data.image}
-            alt={item.data.title}
-            caption={item.data.title}
-          />
-        </div>
-      ))}
+    <div id="portfolio-grid" class="masonry">
+      {items.map(item => {
+        const slug = item.id.replace(/\.(md|mdx)$/, '');
+        return (
+          <a
+            href={`/portfolio/${slug}`}
+            class="masonry-item group"
+            data-category={item.data.category}
+          >
+            <img
+              src={item.data.image}
+              alt={item.data.title}
+              loading="lazy"
+              decoding="async"
+              class="w-full h-auto block transition-opacity duration-300 group-hover:opacity-80"
+            />
+          </a>
+        );
+      })}
     </div>
   </section>
 
   <script>
     const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
-    const items = document.querySelectorAll<HTMLElement>('.portfolio-item');
+    const grid = document.getElementById('portfolio-grid')!;
+
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
         const filter = btn.dataset.filter ?? 'all';
@@ -55,11 +64,29 @@ const categories = Array.from(new Set(items.map(i => i.data.category)));
         });
         btn.classList.add('border-[color:var(--color-ink-100)]', 'text-[color:var(--color-ink-50)]');
         btn.classList.remove('border-[color:var(--color-ink-700)]', 'text-[color:var(--color-ink-300)]');
-        items.forEach(it => {
-          const show = filter === 'all' || it.dataset.category === filter;
-          it.style.display = show ? '' : 'none';
+
+        grid.querySelectorAll<HTMLElement>('.masonry-item').forEach(el => {
+          const show = filter === 'all' || el.dataset.category === filter;
+          el.style.display = show ? 'block' : 'none';
         });
       });
     });
   </script>
 </BaseLayout>
+
+<style>
+  .masonry {
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 640px) {
+    .masonry { columns: 3; }
+  }
+  .masonry-item {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+</style>
