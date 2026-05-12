@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
+import exifr from 'exifr';
+import path from 'node:path';
 
 export async function getStaticPaths() {
   const albums = await getCollection('albums');
@@ -12,6 +14,39 @@ export async function getStaticPaths() {
 
 const { album } = Astro.props;
 const { Content } = await render(album);
+
+function formatShutter(exp: number): string {
+  if (exp >= 1) return `${exp}s`;
+  return `1/${Math.round(1 / exp)}s`;
+}
+
+const photos = await Promise.all(album.data.images.map(async (img, index) => {
+  const filePath = path.join(process.cwd(), 'public', img.src);
+  let exif: Record<string, any> = {};
+  try {
+    exif = await exifr.parse(filePath, {
+      pick: ['Model', 'LensModel', 'FNumber', 'ExposureTime', 'FocalLength', 'ISO', 'DateTimeOriginal']
+    }) ?? {};
+  } catch {}
+  const specs = [
+    exif.FocalLength ? `${exif.FocalLength}mm` : null,
+    exif.FNumber ? `f/${exif.FNumber}` : null,
+    exif.ExposureTime ? formatShutter(exif.ExposureTime) : null,
+    exif.ISO ? `ISO ${exif.ISO}` : null,
+  ].filter(Boolean);
+  return { ...img, index, exif, specs };
+}));
+
+const photoData = photos.map(p => ({
+  src: p.src,
+  caption: p.caption ?? null,
+  camera: p.exif.Model ?? null,
+  lens: p.exif.LensModel ?? null,
+  specs: p.specs,
+  date: p.exif.DateTimeOriginal
+    ? new Date(p.exif.DateTimeOriginal).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    : null,
+}));
 ---
 
 <BaseLayout
@@ -19,7 +54,7 @@ const { Content } = await render(album);
   description={album.data.excerpt ?? `${album.data.title}, photographed in ${album.data.location}.`}
   image={album.data.cover}
 >
-  <!-- Hero image -->
+  <!-- Hero -->
   <section class="relative">
     <div class="aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden bg-[color:var(--color-ink-900)]">
       <img src={album.data.cover} alt={album.data.title} class="h-full w-full object-cover" />
@@ -27,8 +62,12 @@ const { Content } = await render(album);
     <div class="absolute inset-0 bg-gradient-to-t from-[color:var(--color-ink-950)] via-transparent to-transparent"></div>
   </section>
 
+  <!-- Header + story -->
   <section class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-10 pt-10 pb-6">
-    <p class="text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">{album.data.location}</p>
+    <a href="/albums" class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-400)] hover:text-[color:var(--color-ink-100)] transition-colors">
+      ← Albums
+    </a>
+    <p class="mt-6 text-xs uppercase tracking-[0.25em] text-[color:var(--color-accent)]">{album.data.location}</p>
     <h1 class="mt-3 font-serif text-4xl sm:text-5xl">{album.data.title}</h1>
     <p class="mt-2 text-sm text-[color:var(--color-ink-500)]">
       {album.data.date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -36,28 +75,240 @@ const { Content } = await render(album);
     {album.data.excerpt && (
       <p class="mt-4 text-[color:var(--color-ink-300)] text-lg max-w-2xl">{album.data.excerpt}</p>
     )}
-
     <div class="prose prose-invert mt-8 max-w-none text-[color:var(--color-ink-300)]">
       <Content />
     </div>
   </section>
 
+  <!-- Masonry photo grid -->
   <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10 pb-24">
-    <div class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-      {album.data.images.map((img) => (
-        <figure class="overflow-hidden rounded-sm bg-[color:var(--color-ink-800)] ring-1 ring-[color:var(--color-ink-800)]">
-          <div class="aspect-[3/2] overflow-hidden">
-            <img src={img.src} alt={img.caption ?? album.data.title} loading="lazy" class="h-full w-full object-cover" />
-          </div>
-          {img.caption && (
-            <figcaption class="px-3 py-2 text-xs text-[color:var(--color-ink-500)]">{img.caption}</figcaption>
-          )}
-        </figure>
+    <div class="masonry">
+      {photos.map(photo => (
+        <button
+          class="masonry-item group"
+          data-index={photo.index}
+          aria-label={photo.caption ?? `Photo ${photo.index + 1}`}
+        >
+          <img
+            src={photo.src}
+            alt={photo.caption ?? album.data.title}
+            loading="lazy"
+            decoding="async"
+            class="w-full h-auto block transition-opacity duration-300 group-hover:opacity-80"
+          />
+        </button>
       ))}
     </div>
-
-    <div class="mt-12">
-      <a href="/albums" class="text-sm text-[color:var(--color-ink-300)] hover:text-[color:var(--color-accent)]">← Back to all albums</a>
-    </div>
   </section>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button id="lb-close" class="lb-close" aria-label="Close">✕</button>
+    <button id="lb-prev" class="lb-arrow lb-prev" aria-label="Previous">&#8592;</button>
+    <button id="lb-next" class="lb-arrow lb-next" aria-label="Next">&#8594;</button>
+
+    <div class="lb-inner">
+      <div class="lb-img-wrap">
+        <img id="lb-img" src="" alt="" class="lb-img" />
+      </div>
+      <div id="lb-info" class="lb-info">
+        <p id="lb-caption" class="lb-caption"></p>
+        <p id="lb-date" class="lb-meta"></p>
+        <div id="lb-exif" class="lb-exif"></div>
+        <p id="lb-counter" class="lb-counter"></p>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
+
+<script define:vars={{ photoData }}>
+  const photos = photoData;
+  let current = 0;
+
+  const lb       = document.getElementById('lightbox');
+  const lbImg    = document.getElementById('lb-img');
+  const lbCaption = document.getElementById('lb-caption');
+  const lbDate   = document.getElementById('lb-date');
+  const lbExif   = document.getElementById('lb-exif');
+  const lbCounter = document.getElementById('lb-counter');
+
+  function open(index) {
+    current = ((index % photos.length) + photos.length) % photos.length;
+    const p = photos[current];
+    lbImg.src = p.src;
+    lbImg.alt = p.caption ?? '';
+    lbCaption.textContent = p.caption ?? '';
+    lbDate.textContent = p.date ?? '';
+    lbCounter.textContent = `${current + 1} / ${photos.length}`;
+
+    const lines = [];
+    if (p.camera) lines.push(`<span class="lb-label">Camera</span> ${p.camera}`);
+    if (p.lens)   lines.push(`<span class="lb-label">Lens</span> ${p.lens}`);
+    if (p.specs.length) lines.push(p.specs.join(' · '));
+    lbExif.innerHTML = lines.join('<br>');
+
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  document.querySelectorAll('.masonry-item').forEach(btn => {
+    btn.addEventListener('click', () => open(Number(btn.dataset.index)));
+  });
+
+  document.getElementById('lb-close').addEventListener('click', close);
+  document.getElementById('lb-prev').addEventListener('click', () => open(current - 1));
+  document.getElementById('lb-next').addEventListener('click', () => open(current + 1));
+
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape')     close();
+    if (e.key === 'ArrowLeft')  open(current - 1);
+    if (e.key === 'ArrowRight') open(current + 1);
+  });
+
+  // Swipe support
+  let touchStartX = 0;
+  lb.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? open(current + 1) : open(current - 1);
+  });
+</script>
+
+<style>
+  .masonry {
+    columns: 2;
+    column-gap: 8px;
+  }
+  @media (min-width: 640px) { .masonry { columns: 3; } }
+
+  .masonry-item {
+    display: block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border-radius: 2px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  /* Lightbox */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.95);
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+
+  .lb-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .lb-img-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+
+  .lb-img {
+    max-width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
+    border-radius: 2px;
+  }
+
+  .lb-info {
+    text-align: center;
+    space-y: 4px;
+    padding: 0 16px;
+  }
+
+  .lb-caption {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    margin: 0 0 4px;
+  }
+
+  .lb-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin: 0 0 8px;
+  }
+
+  .lb-exif {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.8;
+  }
+
+  .lb-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    margin-right: 6px;
+  }
+
+  .lb-counter {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 8px;
+  }
+
+  .lb-close {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    line-height: 1;
+    padding: 8px;
+    transition: color 0.2s;
+  }
+  .lb-close:hover { color: #fff; }
+
+  .lb-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 32px;
+    cursor: pointer;
+    z-index: 1000;
+    padding: 16px;
+    transition: color 0.2s;
+  }
+  .lb-arrow:hover { color: #fff; }
+  .lb-prev { left: 8px; }
+  .lb-next { right: 8px; }
+</style>
