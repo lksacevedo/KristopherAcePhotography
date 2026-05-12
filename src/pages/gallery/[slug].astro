@@ -38,55 +38,83 @@ const specs = [
 ---
 
 <BaseLayout title={`${title} — KristopherAce Photography`} description={comment ?? `${title}${location ? `, ${location}` : ''}`} image={image}>
-  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-10 pt-36 pb-24">
 
-    <a href="/gallery" class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-ink-400)] hover:text-[color:var(--color-ink-100)] transition-colors">
-      ← Gallery
-    </a>
-
-    <figure class="mt-8">
-      <img
-        src={image}
-        alt={title}
-        class="rounded-sm block mx-auto"
-        style="max-height: 75vh; max-width: 100%; width: auto; height: auto;"
-      />
-
-      <figcaption class="mt-6 space-y-4">
-        <h1 class="font-serif text-3xl sm:text-4xl">{title}</h1>
-
-        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
-          {location && <span>{location}</span>}
-          <span>{shotOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-        </div>
-
-        {comment && (
-          <p class="text-[color:var(--color-ink-300)] leading-relaxed max-w-2xl">{comment}</p>
-        )}
-
-        {(exif.Model || exif.LensModel || specs.length > 0) && (
-          <div class="pt-4 border-t border-[color:var(--color-ink-700)] space-y-2">
-            <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
-              {exif.Model && (
-                <span class="flex gap-2">
-                  <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Camera</span>
-                  {exif.Model}
-                </span>
-              )}
-              {exif.LensModel && (
-                <span class="flex gap-2">
-                  <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Lens</span>
-                  {exif.LensModel}
-                </span>
-              )}
-            </div>
-            {specs.length > 0 && (
-              <p class="text-sm text-[color:var(--color-ink-400)] tracking-wide">{specs.join(' · ')}</p>
-            )}
-          </div>
-        )}
-      </figcaption>
-    </figure>
-
+  <!-- Photo stage: fills the viewport, photo always fits -->
+  <div class="photo-stage">
+    <a href="/gallery" class="back-link">← Gallery</a>
+    <img src={image} alt={title} class="photo-img" />
   </div>
+
+  <!-- Info below the fold -->
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-10 py-12">
+    <h1 class="font-serif text-3xl sm:text-4xl">{title}</h1>
+
+    <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
+      {location && <span>{location}</span>}
+      <span>{shotOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+    </div>
+
+    {comment && (
+      <p class="mt-4 text-[color:var(--color-ink-300)] leading-relaxed">{comment}</p>
+    )}
+
+    {(exif.Model || exif.LensModel || specs.length > 0) && (
+      <div class="mt-6 pt-6 border-t border-[color:var(--color-ink-700)] space-y-2">
+        <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm text-[color:var(--color-ink-400)]">
+          {exif.Model && (
+            <span class="flex gap-2">
+              <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Camera</span>
+              {exif.Model}
+            </span>
+          )}
+          {exif.LensModel && (
+            <span class="flex gap-2">
+              <span class="text-[color:var(--color-ink-600)] uppercase tracking-widest text-xs">Lens</span>
+              {exif.LensModel}
+            </span>
+          )}
+        </div>
+        {specs.length > 0 && (
+          <p class="text-sm text-[color:var(--color-ink-400)] tracking-wide">{specs.join(' · ')}</p>
+        )}
+      </div>
+    )}
+  </div>
+
 </BaseLayout>
+
+<style>
+  .photo-stage {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 120px;
+    padding-bottom: 24px;
+    box-sizing: border-box;
+  }
+
+  .photo-img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .back-link {
+    position: absolute;
+    top: 128px;
+    left: 24px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: rgba(255,255,255,0.9); }
+</style>
