@@ -112,7 +112,41 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_TOKEN ?? '';
         })),
       };
 
+      // Draw a teardrop pin onto a canvas and register it as a map image
+      function createPinImage() {
+        const w = 28, h = 40;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        const cx = w / 2, r = w / 2 - 1;
+        // Shadow
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 2;
+        // Body
+        ctx.beginPath();
+        ctx.arc(cx, r + 1, r, Math.PI, 0);
+        ctx.quadraticCurveTo(cx + r, r * 2.2, cx, h - 1);
+        ctx.quadraticCurveTo(cx - r, r * 2.2, cx - r, r + 1);
+        ctx.closePath();
+        ctx.fillStyle = '#e6c98a';
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = '#0a0a0b';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        // Inner dot
+        ctx.beginPath();
+        ctx.arc(cx, r + 1, r * 0.38, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0a0b';
+        ctx.fill();
+        return { data: ctx.getImageData(0, 0, w, h).data, width: w, height: h };
+      }
+
       map.on('load', () => {
+        const pin = createPinImage();
+        map.addImage('album-pin', { width: pin.width, height: pin.height, data: pin.data });
+
         map.addSource('albums', {
           type: 'geojson',
           data: geojson,
@@ -149,15 +183,37 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_TOKEN ?? '';
 
         map.addLayer({
           id: 'album-pins',
-          type: 'circle',
+          type: 'symbol',
           source: 'albums',
           filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-color': '#e6c98a',
-            'circle-radius': 7,
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#0a0a0b',
+          layout: {
+            'icon-image': 'album-pin',
+            'icon-anchor': 'bottom',
+            'icon-allow-overlap': true,
+            'icon-size': 1,
           },
+        });
+
+        let hoverPopup = null;
+
+        map.on('mouseenter', 'album-pins', (e) => {
+          map.getCanvas().style.cursor = 'pointer';
+          const f = e.features[0];
+          const p = f.properties;
+          hoverPopup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: [0, -44],
+            className: 'hover-popup',
+          })
+            .setLngLat(f.geometry.coordinates)
+            .setHTML(`<span>${p.location}</span>`)
+            .addTo(map);
+        });
+
+        map.on('mouseleave', 'album-pins', () => {
+          map.getCanvas().style.cursor = '';
+          if (hoverPopup) { hoverPopup.remove(); hoverPopup = null; }
         });
 
         map.on('click', 'clusters', (e) => {
@@ -181,14 +237,12 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_TOKEN ?? '';
               <div style="margin-top:8px;font-size:11px;color:#e6c98a;">Open album →</div>
             </a>
           `;
-          new mapboxgl.Popup({ offset: 14, closeButton: true, maxWidth: '260px', className: 'album-popup' })
+          new mapboxgl.Popup({ offset: [0, -44], closeButton: true, maxWidth: '260px', className: 'album-popup' })
             .setLngLat(f.geometry.coordinates)
             .setHTML(html)
             .addTo(map);
         });
 
-        map.on('mouseenter', 'album-pins', () => { map.getCanvas().style.cursor = 'pointer'; });
-        map.on('mouseleave', 'album-pins', () => { map.getCanvas().style.cursor = ''; });
         map.on('mouseenter', 'clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mouseleave', 'clusters', () => { map.getCanvas().style.cursor = ''; });
       });
@@ -207,5 +261,16 @@ const mapboxToken = import.meta.env.PUBLIC_MAPBOX_TOKEN ?? '';
     .mapboxgl-popup-close-button { color: #b8b8c2 !important; font-size: 20px !important; padding: 2px 6px !important; }
     .mapboxgl-ctrl-attrib { background: rgba(10,10,11,0.6) !important; color: #6b6b76 !important; }
     .mapboxgl-ctrl-attrib a { color: #b8b8c2 !important; }
+    .hover-popup .mapboxgl-popup-content {
+      background: rgba(10,10,11,0.85) !important;
+      border: none !important;
+      padding: 5px 10px !important;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #e6c98a !important;
+      border-radius: 3px !important;
+      pointer-events: none;
+    }
+    .hover-popup .mapboxgl-popup-tip { display: none; }
   </style>
 </BaseLayout>
