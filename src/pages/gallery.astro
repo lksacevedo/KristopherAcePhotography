@@ -3,7 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PhotoCard from '../components/PhotoCard.astro';
 import { getCollection } from 'astro:content';
 
+const threeMonthsAgo = new Date();
+threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
 const items = (await getCollection('gallery'))
+  .filter(item => item.data.date >= threeMonthsAgo)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
