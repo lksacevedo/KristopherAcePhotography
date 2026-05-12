@@ -42,7 +42,9 @@ const specs = [
   <!-- Photo stage: fills the viewport, photo always fits -->
   <div class="photo-stage">
     <a href="/portfolio" class="back-link">← Portfolio</a>
-    <img src={image} alt={title} class="photo-img" />
+    <div class="photo-inner">
+      <img src={image} alt={title} class="photo-img" />
+    </div>
   </div>
 
   <!-- Info below the fold -->
@@ -90,12 +92,17 @@ const specs = [
     position: relative;
     width: 100%;
     height: 100vh;
+  }
+
+  .photo-inner {
+    position: absolute;
+    top: 120px;
+    bottom: 24px;
+    left: 0;
+    right: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 120px;
-    padding-bottom: 24px;
-    box-sizing: border-box;
   }
 
   .photo-img {
@@ -104,7 +111,6 @@ const specs = [
     max-height: 100%;
     width: auto;
     height: auto;
-    object-fit: contain;
   }
 
   .back-link {
