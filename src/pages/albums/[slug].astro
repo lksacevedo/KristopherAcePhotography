@@ -107,17 +107,13 @@ const photoData = photos.map(p => ({
     <button id="lb-prev" class="lb-arrow lb-prev" aria-label="Previous">&#8592;</button>
     <button id="lb-next" class="lb-arrow lb-next" aria-label="Next">&#8594;</button>
 
-    <div class="lb-inner">
-      <div class="lb-img-wrap">
-        <img id="lb-img" src="" alt="" class="lb-img" />
-      </div>
+      <img id="lb-img" src="" alt="" class="lb-img" />
       <div id="lb-info" class="lb-info">
         <p id="lb-caption" class="lb-caption"></p>
         <p id="lb-date" class="lb-meta"></p>
         <div id="lb-exif" class="lb-exif"></div>
         <p id="lb-counter" class="lb-counter"></p>
       </div>
-    </div>
   </div>
 </BaseLayout>
 
@@ -210,35 +206,21 @@ const photoData = photos.map(p => ({
     inset: 0;
     z-index: 999;
     background: rgba(0, 0, 0, 0.95);
-    align-items: center;
-    justify-content: center;
-  }
-  .lightbox.open { display: flex; }
-
-  .lb-inner {
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 90vw;
-    height: 90vh;
-    gap: 12px;
+    padding: 60px 80px 20px;
+    box-sizing: border-box;
+    gap: 16px;
   }
-
-  .lb-img-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 1;
-    min-height: 0;
-  }
+  .lightbox.open { display: flex; }
 
   .lb-img {
+    display: block;
     width: auto;
     height: auto;
-    max-width: 90vw;
-    max-height: 60vh;
-    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 180px);
     border-radius: 2px;
   }
 
